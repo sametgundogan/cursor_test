@@ -1518,7 +1518,7 @@ def chart_scatter_map():
             style="open-street-map",
             center=dict(lat=46.5, lon=18.0),
             zoom=3.4,
-            fitbounds=False,
+            bounds=False,
         )
     )
     return style(fig, height=460, axes=False)
@@ -1550,7 +1550,7 @@ def chart_density_map():
             style="open-street-map",
             center=dict(lat=43.5, lon=22.0),
             zoom=4,
-            fitbounds=False,
+            bounds=False,
         )
     )
     return style(fig, height=460, axes=False)
