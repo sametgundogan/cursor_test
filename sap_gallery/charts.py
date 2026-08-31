@@ -128,9 +128,9 @@ def chart_horizontal_bar():
             "harcama": [3.40, 2.85, 2.10, 1.65, 1.20],
         }
     ).sort_values("harcama")
-    fig = px.bar(df, x="harcama", y="lifnr", orientation="h", text="harcama", color="harcama")
-    fig.update_traces(texttemplate="%{text:.2f} M€", textposition="outside", showlegend=False)
-    fig.update_layout(xaxis_title="Harcama (M€)", yaxis_title="Tedarikçi", coloraxis_showscale=False)
+    fig = px.bar(df, x="harcama", y="lifnr", orientation="h", text="harcama")
+    fig.update_traces(texttemplate="%{text:.2f} M€", textposition="outside", marker_color="#0070F2")
+    fig.update_layout(xaxis_title="Harcama (M€)", yaxis_title="Tedarikçi")
     return style(fig)
 
 
@@ -1512,8 +1512,15 @@ def chart_scatter_map():
             "teslimat": [220, 90, 80, 70, 150, 110],
         }
     )
-    fig = px.scatter_map(df, lat="lat", lon="lon", size="teslimat", hover_name="nokta", zoom=3)
-    fig.update_layout(map_style="open-street-map")
+    fig = px.scatter_map(df, lat="lat", lon="lon", size="teslimat", hover_name="nokta")
+    fig.update_layout(
+        map=dict(
+            style="open-street-map",
+            center=dict(lat=46.5, lon=18.0),
+            zoom=3.4,
+            fitbounds=False,
+        )
+    )
     return style(fig, height=460, axes=False)
 
 
@@ -1537,8 +1544,15 @@ def chart_density_map():
         lons.extend(rng.normal(lon, 0.45, n))
         z.extend(rng.integers(1, 6, n))
     df = pd.DataFrame({"lat": lats, "lon": lons, "adet": z})
-    fig = px.density_map(df, lat="lat", lon="lon", z="adet", zoom=4, radius=18)
-    fig.update_layout(map_style="open-street-map")
+    fig = px.density_map(df, lat="lat", lon="lon", z="adet", radius=18)
+    fig.update_layout(
+        map=dict(
+            style="open-street-map",
+            center=dict(lat=43.5, lon=22.0),
+            zoom=4,
+            fitbounds=False,
+        )
+    )
     return style(fig, height=460, axes=False)
 
 
