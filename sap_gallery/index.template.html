@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SAP ERP · Plotly chart kataloğu</title>
+  <script src="https://cdn.plot.ly/plotly-4.0.0.min.js" charset="utf-8"></script>
+  <style>
+    :root {
+      --blue: #0070f2;
+      --blue-hover: #0064d9;
+      --text: #1d2d3e;
+      --muted: #556b82;
+      --line: #d9d9d9;
+      --bg: #f5f6f7;
+      --card: #ffffff;
+      --chip: #eaecee;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "72", "IBM Plex Sans", "Segoe UI", sans-serif;
+    }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: #fff;
+      border-bottom: 1px solid var(--line);
+      padding: 16px 24px 12px;
+    }
+    header h1 {
+      margin: 0 0 4px;
+      font-size: 20px;
+      font-weight: 700;
+    }
+    header p {
+      margin: 0 0 12px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; flex: 1; }
+    button.chip {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--text);
+      border-radius: 999px;
+      padding: 5px 12px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    button.chip.active {
+      background: var(--blue);
+      border-color: var(--blue);
+      color: #fff;
+    }
+    input[type="search"] {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 7px 12px;
+      min-width: 220px;
+      font: inherit;
+      font-size: 13px;
+    }
+    main {
+      padding: 20px 24px 48px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+    @media (max-width: 1100px) {
+      main { grid-template-columns: 1fr; }
+    }
+    article {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px 14px 8px;
+      min-width: 0;
+    }
+    article.wide { grid-column: 1 / -1; }
+    .meta { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 6px; }
+    .badge {
+      background: #e8f3ff;
+      color: var(--blue);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .04em;
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+    .type {
+      background: var(--chip);
+      color: var(--muted);
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+    article h2 {
+      margin: 0 0 4px;
+      font-size: 15px;
+    }
+    .objects, .use {
+      margin: 0 0 4px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .objects code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 11px;
+      background: var(--chip);
+      padding: 1px 5px;
+      border-radius: 4px;
+      color: var(--text);
+    }
+    .plot { width: 100%; min-height: 220px; }
+    .empty {
+      grid-column: 1 / -1;
+      text-align: center;
+      color: var(--muted);
+      padding: 40px;
+    }
+    footer {
+      padding: 0 24px 24px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>SAP ERP · Plotly chart kataloğu</h1>
+    <p>Her Plotly türünden bir özet örnek. Sayılar örnek veridir; SAP nesneleri gerçek tablo/alan adlarıyla eşlenmiştir. <strong>__COUNT__</strong> chart.</p>
+    <div class="toolbar">
+      <div class="chips" id="chips"></div>
+      <input type="search" id="q" placeholder="Chart, modül veya SAP nesnesi ara…" />
+    </div>
+  </header>
+  <main id="grid"></main>
+  <footer>Plotly.js CDN · örnek veri · SAP Fiori renk dili</footer>
+  <script>
+    const CATALOG = /*__CATALOG__*/;
+    const modules = ["Tümü", ...Array.from(new Set(CATALOG.map(c => c.module)))];
+    let active = "Tümü";
+    const chips = document.getElementById("chips");
+    const grid = document.getElementById("grid");
+    const q = document.getElementById("q");
+    const plotted = new Set();
+
+    modules.forEach(m => {
+      const b = document.createElement("button");
+      b.className = "chip" + (m === "Tümü" ? " active" : "");
+      b.textContent = m;
+      b.onclick = () => {
+        active = m;
+        document.querySelectorAll(".chip").forEach(x => x.classList.toggle("active", x.textContent === m));
+        render();
+      };
+      chips.appendChild(b);
+    });
+
+    function visible() {
+      const term = q.value.trim().toLowerCase();
+      return CATALOG.filter(c => {
+        const modOk = active === "Tümü" || c.module === active;
+        if (!modOk) return false;
+        if (!term) return true;
+        return [c.title, c.plotly_type, c.module, c.objects, c.use_case, c.id]
+          .join(" ").toLowerCase().includes(term);
+      });
+    }
+
+    function render() {
+      const items = visible();
+      grid.innerHTML = "";
+      plotted.clear();
+      if (!items.length) {
+        grid.innerHTML = '<div class="empty">Eşleşen chart yok.</div>';
+        return;
+      }
+      items.forEach(c => {
+        const el = document.createElement("article");
+        if (c.wide) el.classList.add("wide");
+        el.innerHTML = `
+          <div class="meta">
+            <span class="badge">${c.module}</span>
+            <span class="type">${c.plotly_type}</span>
+          </div>
+          <h2>${c.title}</h2>
+          <p class="objects">SAP: <code>${c.objects}</code></p>
+          <p class="use">${c.use_case}</p>
+          <div class="plot" id="plot-${c.id}" style="height:${c.height}px"></div>
+        `;
+        grid.appendChild(el);
+      });
+      requestAnimationFrame(() => items.forEach(draw));
+    }
+
+    function draw(c) {
+      if (plotted.has(c.id)) return;
+      const node = document.getElementById("plot-" + c.id);
+      if (!node) return;
+      plotted.add(c.id);
+      const fig = c.figure;
+      Plotly.newPlot(node, fig.data, fig.layout, {
+        displaylogo: false,
+        responsive: true,
+        modeBarButtonsToRemove: ["lasso2d", "select2d"]
+      });
+      if (fig.frames && fig.frames.length) {
+        Plotly.addFrames(node, fig.frames);
+      }
+    }
+
+    q.addEventListener("input", render);
+    render();
+    window.addEventListener("resize", () => {
+      visible().forEach(c => {
+        const node = document.getElementById("plot-" + c.id);
+        if (node) Plotly.Plots.resize(node);
+      });
+    });
+  </script>
+</body>
+</html>
